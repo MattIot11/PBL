@@ -10,6 +10,12 @@
 
 #define RFID_SS 5
 #define RFID_RST 22
+
+MFRC522 rfid(RFID_SS,RFID_RST);
+
+String authorizedUIDs[] = {"C0 CB A4 5F"};
+int numAuthorized = 1;
+
 #define GREEN_LED 25
 #define RED_LED 26
 
@@ -31,11 +37,6 @@ unsigned long lastScanTime = 0;
 //#define OLED_DC 9
 //#define OLED_CS 10
 //#define OLED_RESET 8
-
-MFRC522 rfid(RFID_SS,RFID_RST);
-
-String authorizedUIDs[1] = {"C0 CB A4 5F"};
-int numAuthorized = 1;
 
 String getUID() //Needed
 {
@@ -83,19 +84,31 @@ void allIndicatorsOff() //Needed
 
 void onAccessGranted() //Needed
 {
-  Serial.println("ACCESS GRANTED: Room is free");
+  Serial.println("ACCESS GRANTED:AUTHORIZED CARD");
+  Serial.println("ROOM IS OCCUPIED");
   allIndicatorsOff();
   digitalWrite(GREEN_LED, HIGH);
-  startIndicatorTimer(2000);
+  digitalWrite(RED_LED, LOW);
+  //startIndicatorTimer(2000);
 }
 
 void onAccessDenied() //Needed
 {
-  Serial.println("ACCESS DENIED:Unauthroized ");
+  Serial.println("ACCESS DENIED:UNAUTHORIZED CARD");
+  //Serial.println("ROOM IS FREE");
   allIndicatorsOff();
+  int count = 1;
+  count++;
+  for(int i = 0; i < count; i++)
+  {
   digitalWrite(RED_LED, HIGH);
-  startIndicatorTimer(1000);
-}
+  delay(1000);
+  digitalWrite(RED_LED, LOW);
+  delay(1000);
+  digitalWrite(GREEN_LED,LOW);
+  //startIndicatorTimer(1000);
+  }
+} 
 
 
 
@@ -103,21 +116,21 @@ void onTimerExpired()
 {
   allIndicatorsOff();
   indicatorOn = false;
-  Serial.println("Ready");
+  //Serial.println("ROOM IS FREE");
 }
 
 void onCardScanned(String uid)
 {
   if (uid == lastUID && millis() - lastScanTime < 2000)
   {
-    Serial.println("Repeat ignored");
+    //Serial.println("Repeat ignored");
     return;
   }
   lastUID = uid;
   lastScanTime = millis();
 
-  Serial.print("Card UID: ");
-  Serial.println(uid);
+ // Serial.print("Card UID: ");
+  //Serial.println(uid);
 
   if (isAuthorized(uid) == true)
   {
@@ -137,6 +150,15 @@ void onCardScanned(String uid)
 void setup(){
 
   Serial.begin(115200);
+Serial.println("Program Started");
+
+  // RFID code
+  SPI.begin();
+  rfid.PCD_Init();
+  delay(10);
+  rfid.PCD_DumpVersionToSerial();
+  Serial.println("Room is free");
+
   pinMode(GREEN_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
   
