@@ -1,20 +1,28 @@
+//Part 1 Libraries
 #include <Arduino.h> //Commented code = Georges part
 #include <SPI.h>
 #include <MFRC522.h>
 
+//Part 2 Libraries
 //#include <Wire.h>
 //#include <Adafruit_Sensor.h>
 //#include <Adafruit_BMP280.h>
 //#include <Adafruit_GFX.h>
 //#include <Adafruit_SSD1306.h>
 
+//Part 6 Libraries
+#include <WiFi.h>
+#include <WebServer.h>
+#include <ArudinoJson.h>
+
+//Part 1 global Variables
 #define RFID_SS 5
 #define RFID_RST 22
 
 MFRC522 rfid(RFID_SS,RFID_RST);
 
-String authorizedUIDs[] = {"C0 CB A4 5F"};
-int numAuthorized = 1;
+String authorizedUIDs[] = {"C0 CB A4 5F"}; //Authourized UID
+int numAuthorized = 1; //Number of authourized UIDs
 
 #define GREEN_LED 25
 #define RED_LED 26
@@ -26,7 +34,7 @@ bool indicatorOn = false;
 String lastUID = "";
 unsigned long lastScanTime = 0;
 
-//global variables
+//Part 2 global variables
 //Adafruit_BMP280;
 //float temperature;
 //#define SCREEN_WIDTH 128
@@ -38,7 +46,11 @@ unsigned long lastScanTime = 0;
 //#define OLED_CS 10
 //#define OLED_RESET 8
 
-String getUID() //Needed
+//Part 6 global variables
+WebServer(80);
+
+//Part 1 Functions
+String getUID() //Needed to convert binary value into a UID; does not need to be changed
 {
   String uid = "";
   for (byte i = 0; i < rfid.uid.size; i++)
@@ -82,7 +94,7 @@ void allIndicatorsOff() //Needed
   digitalWrite(RED_LED, LOW);
 }
 
-void onAccessGranted() //Needed
+void onAccessGranted() //Needed for authorized cards & to inidcated room is occupied
 {
   Serial.println("ACCESS GRANTED:AUTHORIZED CARD");
   Serial.println("ROOM IS OCCUPIED");
@@ -92,25 +104,23 @@ void onAccessGranted() //Needed
   //startIndicatorTimer(2000);
 }
 
-void onAccessDenied() //Needed
+void onAccessDenied() //Needed for unathourized cards
 {
   Serial.println("ACCESS DENIED:UNAUTHORIZED CARD");
   //Serial.println("ROOM IS FREE");
   allIndicatorsOff();
   int count = 1;
-  count++;
   for(int i = 0; i < count; i++)
   {
-  digitalWrite(RED_LED, HIGH);
-  delay(1000);
-  digitalWrite(RED_LED, LOW);
-  delay(1000);
-  digitalWrite(GREEN_LED,LOW);
-  //startIndicatorTimer(1000);
+    count++;
+    digitalWrite(RED_LED, HIGH);
+    delay(1000);
+    digitalWrite(RED_LED, LOW);
+    delay(1000);
+    digitalWrite(GREEN_LED,LOW);
+    //startIndicatorTimer(1000);
   }
 } 
-
-
 
 void onTimerExpired()
 {
@@ -144,13 +154,11 @@ void onCardScanned(String uid)
 
 
 
-
-
-
 void setup(){
 
+//Part 1 Setup() code
   Serial.begin(115200);
-Serial.println("Program Started");
+  Serial.println("Program Started");
 
   // RFID code
   SPI.begin();
@@ -161,7 +169,8 @@ Serial.println("Program Started");
 
   pinMode(GREEN_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
-  
+
+  //Part 2 Setup() code
   //Wire.begin();
   //Serial.println("I2C Started");
   //Serial.println("Program Started");
@@ -176,10 +185,15 @@ Serial.println("Program Started");
  // else {
   //  Serial.println("BMP280 Not Found");
   //}
+
+  //Part 6 Setup() code
+  server.begin()
+  Serial.println("Web Server Started");
 }
 
 void loop(){
-   //Card Detection
+  //Part 1 loop() code
+  //Card Detection
 
 if (rfid.PICC_IsNewCardPresent() == true && rfid.PICC_ReadCardSerial() == true)
 {
@@ -195,7 +209,7 @@ if (indicatorOn == true && millis() - indicatorStart >= indicatorTime)
   onTimerExpired();
 }
 
-
+  //Part 2 loop() code
  // temperature = bmp.readTemperature();
  // Serial.print("Temperature: ");
  // Serial.print(temperature);
