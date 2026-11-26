@@ -13,7 +13,7 @@
 //Part 6 Libraries
 #include <WiFi.h>
 #include <WebServer.h>
-#include <ArudinoJson.h>
+#include <ArduinoJson.h>
 
 //Part 1 global Variables
 #define RFID_SS 5
@@ -47,7 +47,7 @@ unsigned long lastScanTime = 0;
 //#define OLED_RESET 8
 
 //Part 6 global variables
-WebServer(80);
+WebServer server(80);
 
 //Part 1 Functions
 String getUID() //Needed to convert binary value into a UID; does not need to be changed
